@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Anruf-Timer</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts - Inter and Orbitron -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        /* Keyframes for background gradient animation */
+        @keyframes gradient-animation {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* Keyframes for timer subtle pulse effect */
+        @keyframes timer-pulse {
+            0% {
+                transform: scale(1);
+                text-shadow: 0 0 5px rgba(255, 255, 255, 0.2); /* Subtle white glow */
+            }
+            50% {
+                transform: scale(1.01);
+                text-shadow: 0 0 15px rgba(255, 255, 255, 0.4); /* Slightly stronger glow */
+            }
+            100% {
+                transform: scale(1);
+                text-shadow: 0 0 5px rgba(255, 255, 255, 0.2);
+            }
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #1a0033 0%, #000000 100%); /* Darker, deep purple to black gradient */
+            background-size: 200% 200%;
+            animation: gradient-animation 20s ease infinite; /* Slower gradient animation */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* More prominent background particles/stars */
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 15% 25%, rgba(255,255,255,0.08) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 70%, rgba(255,255,255,0.1) 0%, transparent 50%),
+                        radial-gradient(circle at 45% 55%, rgba(255,255,255,0.06) 0%, transparent 50%);
+            pointer-events: none;
+            animation: fade-in 2s ease-out;
+        }
+
+        @keyframes fade-in {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .container {
+            background-color: rgba(0, 0, 0, 0.4); /* Darker, more transparent background for glass effect */
+            border-radius: 2rem;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6); /* Even stronger, darker shadow */
+            padding: 3.5rem; /* More padding */
+            text-align: center;
+            max-width: 600px; /* Slightly wider container */
+            width: 100%;
+            border: 1px solid rgba(255, 255, 255, 0.2); /* Subtle white border */
+            backdrop-filter: blur(15px); /* Even stronger blur effect */
+            -webkit-backdrop-filter: blur(15px); /* For Safari */
+            position: relative;
+            z-index: 10;
+            transform: translateY(0);
+            animation: container-slide-in 1s ease-out;
+        }
+
+        @keyframes container-slide-in {
+            from { opacity: 0; transform: translateY(50px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .timer-display {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 5.5rem; /* Significantly larger font for timer */
+            font-weight: 700; /* Bolder, but not extreme like neon */
+            color: #f0f0f0; /* Light gray for modern look */
+            margin-top: 2.5rem;
+            margin-bottom: 3rem;
+            line-height: 1;
+            letter-spacing: 0.08em; /* Slightly increased letter spacing */
+            text-shadow: 0 0 5px rgba(255, 255, 255, 0.2); /* Subtle glow for depth */
+            animation: timer-pulse 2.5s infinite alternate; /* Apply subtle pulse animation */
+            transition: color 0.3s ease;
+            position: relative;
+            display: inline-block;
+        }
+
+        h1 {
+            color: #e0e0e0; /* Lighter gray for title */
+            text-shadow: none; /* No neon glow for title */
+            font-weight: 700;
+        }
+
+        .start-info {
+            font-size: 1.3rem; /* Larger start info */
+            color: #a0a0a0; /* Lighter gray for better contrast */
+            margin-bottom: 1.8rem;
+            font-weight: 600;
+        }
+        .small-text {
+            color: #808080; /* Slightly darker gray for small text */
+            font-size: 1.05rem; /* Slightly larger small text */
+        }
+    </style>
+</head>
+<body class="selection:bg-gray-700 selection:text-white">
+    <div class="container">
+        <h1 class="text-4xl mb-6">Anruf-Timer</h1>
+
+        <!-- Hier kannst du das Startdatum und die Startzeit des Anrufs anpassen -->
+        <!-- Format: YYYY-MM-DDTHH:MM:SS (z.B. 2025-07-25T18:05:00) -->
+        <p class="start-info">
+            Anruf gestartet am: <span id="start-time-display" class="font-semibold"></span>
+        </p>
+
+        <div id="timer" class="timer-display">
+            00:00:00
+        </div>
+
+        <p class="small-text mt-4">
+            Die Zeit läuft ununterbrochen, auch wenn du die Seite schließt.
+        </p>
+    </div>
+
+    <script>
+        // Setze hier das Startdatum und die Startzeit des Anrufs.
+        // WICHTIG: Das Format muss 'YYYY-MM-DDTHH:MM:SS' sein.
+        // Beispiel: '2025-07-25T18:05:00' für 25. Juli 2025, 18:05:00 Uhr
+        const callStartTimeString = '2025-07-25T18:05:00'; // Default value: Friday, July 25, 2025, 18:05:00
+
+        const callStartTime = new Date(callStartTimeString);
+        const timerDisplay = document.getElementById('timer');
+        const startTimeDisplay = document.getElementById('start-time-display');
+
+        // Function to format date and time for display
+        function formatDateTime(date) {
+            const options = {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                hour12: false // 24-hour format
+            };
+            return date.toLocaleDateString('de-DE', options);
+        }
+
+        // Display the start time
+        startTimeDisplay.textContent = formatDateTime(callStartTime);
+
+        function updateTimer() {
+            const now = new Date();
+            const elapsedMilliseconds = now - callStartTime;
+
+            // Calculate total duration in seconds
+            const totalSeconds = Math.floor(elapsedMilliseconds / 1000);
+
+            // Calculate hours, minutes, seconds from total seconds
+            const hours = Math.floor(totalSeconds / 3600);
+            const minutes = Math.floor((totalSeconds % 3600) / 60);
+            const seconds = totalSeconds % 60;
+
+            // Format numbers with leading zeros
+            const formattedHours = String(hours).padStart(2, '0');
+            const formattedMinutes = String(minutes).padStart(2, '0');
+            const formattedSeconds = String(seconds).padStart(2, '0');
+
+            // Update display, only Hours:Minutes:Seconds
+            timerDisplay.textContent = `${formattedHours}:${formattedMinutes}:${formattedSeconds}`;
+        }
+
+        // Update the timer every second
+        setInterval(updateTimer, 1000);
+
+        // Update timer immediately on page load
+        updateTimer();
+    </script>
+</body>
+</html>
